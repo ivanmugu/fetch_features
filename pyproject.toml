@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fetch_features"
+version = "0.2.0"
+authors = [
+    {name = "Ivan Muñoz-Gutierrez", email = "ivan.munoz.gutierrez@gmail.com"},
+]
+description = "Fetch features from a list of accession or BioSample numbers."
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = [
+    "unique identifier", "accession number", "BioSample number", "GenBank",
+    "sequence features"
+]
+license = {text = "BSD 3-Clause License"}
+dependencies = [
+    "biopython==1.81",
+    "customtkinter==5.1.3",
+    "darkdetect==0.8.0",
+    "numpy==1.24.3",
+    "pandas==2.0.1",
+    "python-dateutil==2.8.2",
+    "pytz==2023.3",
+    "six==1.16.0",
+    "tzdata==2023.3",
+]
+
+[project.scripts]
+fetcher = "fetcher.__main__:main"
