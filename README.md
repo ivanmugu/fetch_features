@@ -1,68 +1,13 @@
-# fetch_features.py
+# fetch features
 
-Fetch information from a list of GenBank unique identifiers (UIDs).
-
-The list of UIDs can be accession or BioSample numbers, and the user can
-provide the UIDs in a .txt or .xlsx file.
-
-The program first reads the list. Then, it visits the nuccore database and
-collects each UID's features. The information fetched includes description,
-size, topology, organism, references, etc. To check the complete list of
-features the program fetches, look at the results.xlsx example.
-
-When accessing BioSample numbers, the program removes redundant information
-such as outdated accession numbers or short contigs of few nucleotides.
-
-The program can be run in the command line or as a GUI.
-
-## Requirements
-
-- macOS: currently this program has been tested only in macOS but should work
-  in windows
-- [python](https://www.python.org/) 3.11 or later
-- [Biopython](https://biopython.org/) 1.81 or later
-- [customtkinter](https://customtkinter.tomschimansky.com/) 5.1 or later
+Fetch information from a list of accession of BioSample numbers.
 
 ## Installation
 
-### Clone fetch_features from github
-
-In the terminal, move to a directory where you want to clone the fetch features
-project. For example:
+Create a virtual environment and install `fetch features` using pip as follows:
 
 ```bash
-cd ~/Documents
-git clone https://github.com/ivanmugu/fetch_features.git
-cd fetch_features
-```
-
-### Make a conda environment
-
-```bash
-conda create --name fetch_features
-```
-
-### Activate the environment
-
-```bash
-conda activate fetch_features
-```
-
-### Install dependencies
-
-Install biopython via conda.
-
-```bash
-conda install -c conda-forge biopython
-```
-
-If the previous command fails, visit the following link for alternatives:
-https://anaconda.org/conda-forge/biopython
-
-Install customtkinter via pip
-
-```bash
-pip install customtkinter
+pip install fetch-features
 ```
 
 ## Usage and options
@@ -70,62 +15,65 @@ pip install customtkinter
 To view all the options run:
 
 ```bash
-python3 fetch_features.py --help
+fetcher --help
 ```
 
 Output:
 
 ```
-usage: fetch_features.py [-i INPUT] [-t TYPE] [-e EMAIL] [-h] [-o OUTPUT] [-s SAVE_AS]
-                         [--access-biosample-from-accession] [--gui]
+usage: fetcher [-h] [-i, INPUT] [-t, TYPE] [-e, EMAIL] [-o, OUTPUT] [-s, SAVE-AS]
+               [--access-biosample-from-accession] [--gui]
 
-Fetch features of unique identifiers (UIDs) from GenBank.
+  __      _       _        __            _
+ / _| ___| |_ ___| |__    / _| ___  __ _| |_ _   _ _ __ ___  ___
+| |_ / _ \ __/ __| '_ \  | |_ / _ \/ _` | __| | | | '__/ _ \/ __|
+|  _|  __/ || (__| | | | |  _|  __/ (_| | |_| |_| | | |  __/\__ \
+|_|  \___|\__\___|_| |_| |_|  \___|\__,_|\__|\__,_|_|  \___||___/
 
-Required arguments:
-  -i INPUT, --input INPUT
-                        Path to input file with list of unique idenfiers.
-  -t TYPE, --type TYPE  Type of unique identifier. Enter `accession` or `biosample`.
-  -e EMAIL, --email EMAIL
-                        Provide your email address to NCBI.
+Fetch features from a list of accession or BioSample numbers.
 
-Optional arguments:
+Help:
   -h, --help            Show this help message and exit.
+
+Required:
+  -i INPUT, --input INPUT
+                        Path to input file with list of unique identifiers (UIDs).
+                        The user should provide the list of UIDs in a txt or xlsx file.
+  -t TYPE, --type TYPE  Type of unique identifier: `accession` or `biosample`.
+                        The `biosample` option fetches the information of the most
+                        updated accession numbers associated with the BioSample number.
+  -e EMAIL, --email EMAIL
+                        Provide your email address to the NCBI.
+
+Optional:
   -o OUTPUT, --output OUTPUT
-                        Path to output folder. If this flag is not provided, the
-                        result files will be saved in the current directory.
+                        Path to output folder (default current working directory).
   -s SAVE_AS, --save-as SAVE_AS
-                        Save results as csv, excel or both (default `csv`). Enter
-                        `csv`, `excel`, or `csv-excel`.
+                        Save results as: `csv`, `excel`, or `csv-excel` (default `csv`).
   --access-biosample-from-accession
-                        If you provide a list of accession numbers, get features
-                        of all related accession numbers that belong to the same
-                        BioSample.
-  --gui                 Activate the graphical user interface.
+                        If you provide a list of accession numbers, get features of
+                        all related accession numbers that belong to the same BioSample.
+  --gui                 Activate GUI.
 ```
 
-Before running the program you need a folder with all the relevant information.
-For example:
+## Usage examples
 
-```
-        Documents
-        +-- Results
-            +-- fetch_features.py
-            +-- database.py
-            +-- user_input.py
-            +-- list.txt    <- List with the UIDs
-```
-
-Next, you run the code as follows:
+1. The simplest command. The output is in the current working directoy.
 
 ```bash
-python3 fetch_features.py -i list.txt -t accession -e your@email.com
+fetcher -i path/to/list.txt -t accession -e email@address.com
 ```
 
-If you prefer to use the graphical user interface (GUI), run the following
-command:
+2. In this example, the output is in your Documents.
 
 ```bash
-python3 fetch_features.py --gui
+fetcher -i path/to/list.txt -t accession -e email@address.com -o ~/Documents
+```
+
+3. If you prefer the GUI version.
+
+```bash
+fetcher --gui
 ```
 
 <p align="center">

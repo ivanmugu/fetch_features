@@ -15,9 +15,9 @@ from typing import Union
 
 # Usage mesasge.
 usage_msg = (
-    "fetch [-h] [-i, INPUT] [-t, TYPE] [-e, EMAIL] [-o, OUTPUT] " +
+    "fetcher [-h] [-i, INPUT] [-t, TYPE] [-e, EMAIL] [-o, OUTPUT] " +
     "[-s, SAVE-AS]\n" +
-    "             [--access-biosample-from-accession] [--gui]"
+    "               [--access-biosample-from-accession] [--gui]"
 )
 # Description message.
 description_msg = r"""
@@ -34,13 +34,13 @@ Fetch features from a list of accession or BioSample numbers.
 epilog_msg = r"""
 Usage examples:
 1. The simplest command. The output is in the current working directory.
-$ fetch -i path/to/list.txt -t accession -e email@address.com
+$ fetcher -i path/to/list.txt -t accession -e email@address.com
 
 2. In this example, the output is in your Documents.
-$ fetch -i path/to/list.txt -t accession -e email@address.com -o ~/Documents
+$ fetcher -i path/to/list.txt -t accession -e email@address.com -o ~/Documents
 
 3. If you prefer the GUI version.
-$ fetch --gui
+$ fetcher --gui
 """
 
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fetch_features"
-version = "0.2.0"
+version = "0.2.1"
 authors = [
     {name = "Ivan Muñoz-Gutierrez", email = "ivan.munoz.gutierrez@gmail.com"},
 ]
@@ -16,6 +16,13 @@ keywords = [
     "sequence features"
 ]
 license = {text = "BSD 3-Clause License"}
+classifiers = [
+    "Programming Language :: Python",
+    "License :: OSI Approved :: BSD License",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
 dependencies = [
     "biopython==1.81",
     "customtkinter==5.1.3",
@@ -27,6 +34,9 @@ dependencies = [
     "six==1.16.0",
     "tzdata==2023.3",
 ]
+
+[project.urls]
+"Homepage" = "https://github.com/ivanmugu/fetch_features"
 
 [project.scripts]
 fetcher = "fetcher.__main__:main"
