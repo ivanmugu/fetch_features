@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fetch_features"
-version = "0.2.1"
+version = "0.2.2"
 authors = [
     {name = "Ivan Muñoz-Gutierrez", email = "ivan.munoz.gutierrez@gmail.com"},
 ]
@@ -33,10 +33,11 @@ dependencies = [
     "pytz==2023.3",
     "six==1.16.0",
     "tzdata==2023.3",
+    "toml==0.10.2"
 ]
 
 [project.urls]
 "Homepage" = "https://github.com/ivanmugu/fetch_features"
 
 [project.scripts]
-fetcher = "fetcher.__main__:main"
+fetch_features = "fetcher.__main__:main"

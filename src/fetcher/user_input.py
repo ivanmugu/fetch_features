@@ -11,18 +11,12 @@ import textwrap
 from pathlib import Path
 import re
 from typing import Union
+import pkg_resources
 
-
-# Usage mesasge.
-usage_msg = (
-    "fetcher [-h] [-i, INPUT] [-t, TYPE] [-e, EMAIL] [-o, OUTPUT] " +
-    "[-s, SAVE-AS]\n" +
-    "               [--access-biosample-from-accession] [--gui]"
-)
 # Description message.
 description_msg = r"""
-  __      _       _        __            _                       
- / _| ___| |_ ___| |__    / _| ___  __ _| |_ _   _ _ __ ___  ___ 
+  __      _       _        __            _
+ / _| ___| |_ ___| |__    / _| ___  __ _| |_ _   _ _ __ ___  ___
 | |_ / _ \ __/ __| '_ \  | |_ / _ \/ _` | __| | | | '__/ _ \/ __|
 |  _|  __/ || (__| | | | |  _|  __/ (_| | |_| |_| | | |  __/\__ \
 |_|  \___|\__\___|_| |_| |_|  \___|\__,_|\__|\__,_|_|  \___||___/
@@ -46,11 +40,13 @@ $ fetcher --gui
 
 class UserInput:
     """Class to save user input via the commmand line."""
+    # TODO: include a `type` option for the type of identifiers in the list.
 
     def __init__(
             self,
             infile: Union[Path, None] = None,
             extention_infile: Union[str, None] = None,
+            uid_type: Union[str, None] = None,
             email: Union[str, None] = None,
             output_folder: Path = Path('.'),
             access_biosample_from_accession: bool = False,
@@ -59,6 +55,7 @@ class UserInput:
     ):
         self.infile = infile
         self.extention_infile = extention_infile
+        self.uid_type = uid_type
         self.email = email
         self.output_folder = output_folder
         self.access_biosample_from_accession = access_biosample_from_accession
@@ -76,8 +73,8 @@ def parse_comm_line() -> UserInput:
     # Parse arguments and provide help.
     parser = argparse.ArgumentParser(
         add_help=False,
-        prog='fetcher',
-        usage=usage_msg,
+        prog='fetch_features',
+        # usage=usage_msg,
         formatter_class=argparse.RawTextHelpFormatter,
         description=description_msg,
         epilog=textwrap.dedent(epilog_msg)
@@ -93,6 +90,12 @@ def parse_comm_line() -> UserInput:
     helper.add_argument(
         '-h', '--help', action='help',
         help='Show this help message and exit.',
+    )
+    prog_version = pkg_resources.get_distribution('fetch_features').version
+    helper.add_argument(
+        '-v', '--version', action='version',
+        version=f'%(prog)s {prog_version}',
+        help="Show program's version number and exit"
     )
 
     # ################## #
@@ -155,7 +158,9 @@ def parse_comm_line() -> UserInput:
     # ################################################################ #
     # Parse command line arguments and store info in a UserInput class #
     # ################################################################ #
-    user_input = get_command_line_input(parser.parse_args())
+    args = parser.parse_args()
+    print(args.__dict__)
+    user_input = get_command_line_input(args)
     check_required_and_gui_arguments(user_input)
 
     return user_input
