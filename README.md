@@ -15,14 +15,14 @@ pip install fetch-features
 To view all the options run:
 
 ```bash
-fetcher --help
+fetche_features --help
 ```
 
 Output:
 
 ```
-usage: fetcher [-h] [-i, INPUT] [-t, TYPE] [-e, EMAIL] [-o, OUTPUT] [-s, SAVE-AS]
-               [--access-biosample-from-accession] [--gui]
+usage: fetch_features [-h] [-v] [-i INPUT] [-t TYPE] [-e EMAIL] [-o OUTPUT] [-s SAVE_AS]
+                      [--access-biosample-from-accession] [--gui]
 
   __      _       _        __            _
  / _| ___| |_ ___| |__    / _| ___  __ _| |_ _   _ _ __ ___  ___
@@ -34,6 +34,7 @@ Fetch features from a list of accession or BioSample numbers.
 
 Help:
   -h, --help            Show this help message and exit.
+  -v, --version         Show program's version number and exit
 
 Required:
   -i INPUT, --input INPUT
@@ -61,19 +62,19 @@ Optional:
 1. The simplest command. The output is in the current working directoy.
 
 ```bash
-fetcher -i path/to/list.txt -t accession -e email@address.com
+fetch_features -i path/to/list.txt -t accession -e email@address.com
 ```
 
 2. In this example, the output is in your Documents.
 
 ```bash
-fetcher -i path/to/list.txt -t accession -e email@address.com -o ~/Documents
+fetch_features -i path/to/list.txt -t accession -e email@address.com -o ~/Documents
 ```
 
 3. If you prefer the GUI version.
 
 ```bash
-fetcher --gui
+fetch_features --gui
 ```
 
 <p align="center">
