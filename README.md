@@ -15,7 +15,7 @@ pip install fetch-features
 To view all the options run:
 
 ```bash
-fetche_features --help
+fetch_features --help
 ```
 
 Output:
