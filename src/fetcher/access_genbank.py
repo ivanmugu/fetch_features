@@ -323,8 +323,8 @@ def fetch_features_manager(
         "molecule", "mod_date", "topology", "mol_type", "organism",
         "strain", "isolation_source", "host", "plasmid", "country",
         "lat_lon", "collection_date", "note", "serovar", "collected_by",
-        "genotype", "BioProject", "BioSample", "Assem_Method",
-        "Gen_Coverage", "Seq_Technol", "Gen_Represent", "Exp_Final_Ver"]
+        "genotype", "bioproject", "biosample", "assem_method",
+        "gen_coverage", "seq_technol", "gen_represent", "exp_final_ver"]
     # references' field names for the csv table.
     ref_fields = [
         "accession", "reference_num", "location", "authors", "title",

@@ -90,7 +90,7 @@ def make_uid_list(infile: Path) -> list:
     return uid_list
 
 
-def make_uid_batch_list(uid_list: list, batch_size: int = 200) -> list:
+def make_uid_batch_list(uid_list: list, batch_size: int = 1) -> list:
     """Make batches of commma-delimited UIDs as accession or Biosample numbers.
 
     Parameters
@@ -243,6 +243,49 @@ def get_biosample_numbers(submission_list: list, email_address: str) -> list:
     return biosample_numbers
 
 
+class Info:
+    """"Class to store data retrieved from the nuccore database."""
+
+    def __init__(
+        self, set_batch='missing', description='missing', accession='missing',
+        size='missing', mod_date='missing', molecule='missing',
+        topology='missing', mol_type='missing', organism='missing',
+        strain='missing', isolation_source='missing', host='missing',
+        plasmid='missing', country='missing', lat_lon='missing',
+        collection_date='missing', note='missing', serovar='missing',
+        collected_by='missing', genotype='missing', bioproject='missing',
+        biosample='missing', assem_method='missing', gen_coverage='missing',
+        seq_technol='missing', gen_represent='missing', exp_final_ver='missing'
+    ):
+        self.set_batch = set_batch
+        self.description = description
+        self.accession = accession
+        self.size = size
+        self.molecule = molecule
+        self.mod_date = mod_date
+        self.topology = topology
+        self.mol_type = mol_type
+        self.organism = organism
+        self.strain = strain
+        self.isolation_source = isolation_source
+        self.host = host
+        self.plasmid = plasmid
+        self.country = country
+        self.lat_lon = lat_lon
+        self.collection_date = collection_date
+        self.note = note
+        self.serovar = serovar
+        self.collected_by = collected_by
+        self.genotype = genotype
+        self.bioproject = bioproject
+        self.biosample = biosample
+        self.assem_method = assem_method
+        self.gen_coverage = gen_coverage
+        self.seq_technol = seq_technol
+        self.gen_represent = gen_represent
+        self.exp_final_ver = exp_final_ver
+
+
 def parser(fetch_handle: IO, set_number: int) -> tuple:
     """Parse information fetched from nuccore NCBI.
 
@@ -265,24 +308,24 @@ def parser(fetch_handle: IO, set_number: int) -> tuple:
         references of an accession number. One accession number can have one or
         more references. Therefore, this list may be longer than `records`.
     """
-    # Create a list to save records in dictionaries.
+    # Create a list to save Info classes with records.
     records = []
     # Create a list to save the references related to each accession number.
     ref_records = []
 
     # Parse the fetched information.
     for seq_record in SeqIO.parse(fetch_handle, "gb"):
-        # Dictionary to store fetched information.
-        info = {}
+        # Initiate an Info class to store collected data.
+        info = Info()
         # Keep track of the set_number (or batch) analyzed.
-        info['set_batch'] = set_number
+        info.set_batch = set_number
         # Extract `description`.
-        info['description'] = seq_record.description
+        info.description = seq_record.description
         # Extract sequence id, i.e. `accession` number.
-        info['accession'] = seq_record.id
+        info.accession = seq_record.id
         # Extract `size` from `.seq`.
         # `.seq` is an object with the sequence itself.
-        info['size'] = len(seq_record.seq)
+        info.size = len(seq_record.seq)
 
         #######################################################################
         # '.annotations' is a dictionary of aditional information about the
@@ -294,134 +337,88 @@ def parser(fetch_handle: IO, set_number: int) -> tuple:
             mod_date = seq_record.annotations['date']
             mod_date = datetime.strptime(mod_date, '%d-%b-%Y')
             mod_date = datetime.strftime(mod_date, "%Y-%m-%d")
-            info['mod_date'] = mod_date
-        else:
-            info['mod_date'] = 'missing'
+            info.mod_date = mod_date
         # Extract `topology`.
         if "topology" in seq_record.annotations:
-            info['topology'] = seq_record.annotations["topology"]
-        else:
-            info['topology'] = "missing"
+            info.topology = seq_record.annotations["topology"]
 
         # Check whether it is `chromosome` or `plasmid`. The 3,000,000 length
-        # used in `size` is an arbitrary number that considers chormosomes of
+        # used in `size` is an arbitrary number that considers chromosomes of
         # that length.
         # Check if label `chromosome` is in the `description`.
-        if 'chromosome' in info['description']:
-            info['molecule'] = 'chromosome'
+        if 'chromosome' in info.description:
+            info.molecule = 'chromosome'
         # If not, consider a chromosome the at least 3,000,000 in legth.
-        elif info['size'] >= 3_000_000 and info['topology'] == 'circular':
-            info['molecule'] = 'chromosome'
-        # If it is not a chromosome, the check if it is a `plasmid`.
-        elif 'plasmid' in info['description']:
-            info['molecule'] = 'plasmid'
-        else:
-            info['molecule'] = 'missing'
+        elif info.size >= 3_000_000 and info.topology == 'circular':
+            info.molecule = 'chromosome'
+        # If it is not a chromosome, then check if it is a `plasmid`.
+        elif 'plasmid' in info.description:
+            info.molecule = 'plasmid'
 
-        # '.features' is a list of SeqFeatures objects with more structured
+        # `.features` is a list of SeqFeatures objects with more structured
         # information about the features on a sequence.
-        feature = seq_record.features
-
-        # Loop over list feature.
-        for index in feature:
-            # '.type' is only a description of the type of feature
-            # that could be source, CDS, gene, etc.
-            # In source we can find organism, strain, host, country, etc.
-            if index.type == "source":
-                # Create a dictionary of the qualifiers from source.
-                dictionary = dict(index.qualifiers)
-                # '.get' gives a list
-                # Extract molecule type (`mol_type`).
-                if "mol_type" in dictionary:
-                    info['mol_type'] = dictionary.get("mol_type")[0]
-                else:
-                    info['mol_type'] = 'missing'
-                # Extract `organism`.
-                if 'organism' in dictionary:
-                    info['organism'] = dictionary.get('organism')[0]
-                else:
-                    info['organism'] = 'missing'
-                # Extract `strain`.
-                if 'strain' in dictionary:
-                    info['strain'] = dictionary.get('strain')[0]
-                else:
-                    info['strain'] = 'missing'
-                # Extract `isolation_source`.
-                if 'isolation_source' in dictionary:
-                    info['isolation_source'] =\
-                        dictionary.get('isolation_source')[0]
-                else:
-                    info['isolation_source'] = 'missing'
-                # Extract `host`.
-                if 'host' in dictionary:
-                    info['host'] = dictionary.get('host')[0]
-                else:
-                    info['host'] = 'missing'
-                # Extract `plasmid`.
-                if 'plasmid' in dictionary:
-                    info['plasmid'] = dictionary.get('plasmid')[0]
-                else:
-                    info['plasmid'] = 'missing'
-                # Extract `country`.
-                if 'country' in dictionary:
-                    info['country'] = dictionary.get('country')[0]
-                else:
-                    info['country'] = 'missing'
-                # Extract `coordinates`.
-                if "lat_lon" in dictionary:
-                    info['lat_lon'] = dictionary.get("lat_lon")[0]
-                else:
-                    info['lat_lon'] = 'missing'
-                # Extract `collection_date`.
-                if "collection_date" in dictionary:
-                    info['collection_date'] =\
-                        dictionary.get("collection_date")[0]
-                else:
-                    info['collection_date'] = 'missing'
-                # Extract `note`.
-                if "note" in dictionary:
-                    info['note'] = dictionary.get("note")[0]
-                else:
-                    info['note'] = 'missing'
-                # Extract `serovar`.
-                if "serovar" in dictionary:
-                    info['serovar'] = dictionary.get("serovar")[0]
-                else:
-                    info['serovar'] = 'missing'
-                # Extract `collected_by`.
-                if "collected_by" in dictionary:
-                    info['collected_by'] = dictionary.get("collected_by")[0]
-                else:
-                    info['collected_by'] = 'missing'
-                # Extract `genotype`.
-                if "genotype" in dictionary:
-                    info['genotype'] = dictionary.get("genotype")[0]
-                else:
-                    info['genotype'] = 'missing'
-
+        # Loop over list of features to find the type source.
+        for feature in seq_record.features:
+            # `.type` is only a description of the type of feature that could
+            # be source, CDS, gene, etc. The feature that we need is `source`.
+            # In type `source` we can find organism, strain, host, country, etc.
+            if feature.type == "source":
+                # `qualifiers` is a Python dictionary of additional information
+                # about the feature.
+                source = feature.qualifiers
                 break
+        # Extract all the info from the type `source`.
+        # `source` is a dictionary where the key-values are lists. Therefore,
+        # the `.get` method retrieves a list.
+        # Extract molecule type (`mol_type`).
+        if "mol_type" in source:
+            info.mol_type = source.get("mol_type")[0]
+        # Extract `organism`.
+        if 'organism' in source:
+            info.organism = source.get('organism')[0]
+        # Extract `strain`.
+        if 'strain' in source:
+            info.strain = source.get('strain')[0]
+        # Extract `isolation_source`.
+        if 'isolation_source' in source:
+            info.isolation_source = source.get('isolation_source')[0]
+        # Extract `host`.
+        if 'host' in source:
+            info.host = source.get('host')[0]
+        # Extract `plasmid`.
+        if 'plasmid' in source:
+            info.plasmid = source.get('plasmid')[0]
+        # Extract `country`.
+        if 'country' in source:
+            info.country = source.get('country')[0]
+        # Extract `coordinates`.
+        if "lat_lon" in source:
+            info.lat_lon = source.get("lat_lon")[0]
+        # Extract `collection_date`.
+        if "collection_date" in source:
+            info.collection_date = source.get("collection_date")[0]
+        # Extract `note`.
+        if "note" in source:
+            info.note = source.get("note")[0]
+        # Extract `serovar`.
+        if "serovar" in source:
+            info.serovar = source.get("serovar")[0]
+        # Extract `collected_by`.
+        if "collected_by" in source:
+            info.collected_by = source.get("collected_by")[0]
+        # Extract `genotype`.
+        if "genotype" in source:
+            info.genotype = source.get("genotype")[0]
 
-        # '.dbxrefs' is a list populated from any PROJECT or DBLINK
-        # Check if .dbxrefs has any information.
-        if len(seq_record.dbxrefs) == 0:
-            info['BioProject'] = 'missing'
-            info['BioSample'] = 'missing'
-
-        # Convert the list dbxrefs into dictionary.
-        dictionary_dbxrefs = {}
-        for i in range(len(seq_record.dbxrefs)):
-            s = seq_record.dbxrefs[i].split(":")
-            dictionary_dbxrefs[s[0]] = s[1]
-
-        # Extract `BioProject` and `BioSample`.
-        if "BioProject" in dictionary_dbxrefs:
-            info['BioProject'] = dictionary_dbxrefs.get("BioProject")
-        else:
-            info['BioProject'] = 'missing'
-        if "BioSample" in dictionary_dbxrefs:
-            info['BioSample'] = dictionary_dbxrefs.get("BioSample")
-        else:
-            info['BioSample'] = 'missing'
+        # `.dbxrefs` is a list populated from any PROJECT or DBLINK.
+        # If `.dbxrefs` has information, extract `BioProject` and `BioSample`.
+        if len(seq_record.dbxrefs) != 0:
+            for dbxref in seq_record.dbxrefs:
+                # Extract `BioProject` and `BioSample`.
+                if "BioProject" in dbxref:
+                    info.bioproject = dbxref.split(':')[1]
+                if "BioSample" in dbxref:
+                    info.biosample = dbxref.split(':')[1]
 
         # #####################################################################
         # Mine `structured_comment`
@@ -436,54 +433,44 @@ def parser(fetch_handle: IO, set_number: int) -> tuple:
             if ("Assembly Method" in (
                 seq_record.annotations["structured_comment"]
                                       ["Genome-Assembly-Data"])):
-                info['Assem_Method'] = (
+                info.assem_method = (
                     seq_record.annotations["structured_comment"]
                                           ["Genome-Assembly-Data"]
                                           ["Assembly Method"])
-            else:
-                info['Assem_Method'] = "missing"
             # Extract `Genome Representation`.
             if "Genome Representation" in (
                 seq_record.annotations["structured_comment"]
                                       ["Genome-Assembly-Data"]):
-                info['Gen_Represent'] = (
+                info.gen_represent = (
                     seq_record.annotations["structured_comment"]
                                           ["Genome-Assembly-Data"]
                                           ["Genome Representation"])
-            else:
-                info['Gen_Represent'] = "missing"
             # Extract `Expected Final Version`.
             if "Expected Final Version" in (
                 seq_record.annotations["structured_comment"]
                                       ["Genome-Assembly-Data"]
             ):
-                info['Exp_Final_Ver'] = (
+                info.exp_final_ver = (
                     seq_record.annotations["structured_comment"]
                                           ["Genome-Assembly-Data"]
                                           ["Expected Final Version"]
                 )
-            else:
-                info['Exp_Final_Ver'] = "missing"
             # Extract `Genome Coverage`.
             if "Genome Coverage" in (
                 seq_record.annotations["structured_comment"]
                                       ["Genome-Assembly-Data"]):
-                info['Gen_Coverage'] = (
+                info.gen_coverage = (
                     seq_record.annotations["structured_comment"]
                                           ["Genome-Assembly-Data"]
                                           ["Genome Coverage"])
-            else:
-                info['Gen_Coverage'] = "missing"
-            # Exteract `Sequencing Technology`.
+            # Extract `Sequencing Technology`.
             if "Sequencing Technology" in (
                 seq_record.annotations["structured_comment"]
                                       ["Genome-Assembly-Data"]):
-                info['Seq_Technol'] = (
+                info.seq_technol = (
                     seq_record.annotations["structured_comment"]
                                           ["Genome-Assembly-Data"]
                                           ["Sequencing Technology"])
-            else:
-                info['Seq_Technol'] = "missing"
         # Check if the sequence has `structured_comment` and `Assembly-Data`.
         elif "structured_comment" in seq_record.annotations and (
             "Assembly-Data" in (
@@ -492,64 +479,47 @@ def parser(fetch_handle: IO, set_number: int) -> tuple:
             if "Assembly Method" in (
                 seq_record.annotations["structured_comment"]
                                       ["Assembly-Data"]):
-                info['Assem_Method'] = (
+                info.assem_method = (
                     seq_record.annotations["structured_comment"]
                                           ["Assembly-Data"]
                                           ["Assembly Method"])
-            else:
-                info['Assem_Method'] = "missing"
             # Extract `Genome Representation`.
             if "Genome Representation" in (
                 seq_record.annotations["structured_comment"]
                                       ["Genome-Assembly-Data"]):
-                info['Gen_Represent'] = (
+                info.gen_represent = (
                     seq_record.annotations["structured_comment"]
                                           ["Genome-Assembly-Data"]
                                           ["Genome Representation"])
-            else:
-                info['Gen_Represent'] = "missing"
             # Extract `Expected Final Version`.
             if "Expected Final Version" in (
                 seq_record.annotations["structured_comment"]
                                       ["Genome-Assembly-Data"]
             ):
-                info['Exp_Final_Ver'] = (
+                info.exp_final_ver = (
                     seq_record.annotations["structured_comment"]
                                           ["Genome-Assembly-Data"]
                                           ["Expected Final Version"]
                 )
-            else:
-                info['Exp_Final_Ver'] = "missing"
             # Extract `Genome Coverage`.
             if "Genome Coverage" in (
                 seq_record.annotations["structured_comment"]
                                       ["Assembly-Data"]):
-                info['Gen_Coverage'] = (
+                info.gen_coverage = (
                     seq_record.annotations["structured_comment"]
                                           ["Assembly-Data"]
                                           ["Genome Coverage"])
-            else:
-                info['Gen_Coverage'] = "missing"
             # Extract `Sequencing Technology`.
             if "Sequencing Technology" in (
                 seq_record.annotations["structured_comment"]
                                       ["Assembly-Data"]):
-                info['Seq_Technol'] = (
+                info.seq_technol = (
                     seq_record.annotations["structured_comment"]
                                           ["Assembly-Data"]
                                           ["Sequencing Technology"])
-            else:
-                info['Seq_Technol'] = "missing"
-        # Otherwise, the info is missing.
-        else:
-            info['Assem_Method'] = "missing"
-            info['Gen_Coverage'] = "missing"
-            info['Seq_Technol'] = "missing"
-            info['Gen_Represent'] = "missing"
-            info['Exp_Final_Ver'] = "missing"
 
-        # Append info dictionary to records list.
-        records.append(info)
+        # Convert info class into a dictionary and append to records list.
+        records.append(vars(info))
 
         # ################################################
         # Get references and make an independent database.
@@ -787,7 +757,7 @@ def clean_features(raw_data: list) -> list:
 
 def save_results_as(
         results: Path, ref_results: Path, save_as: str = 'csv'
-        ) -> None:
+) -> None:
     """Save results in the requested format.
 
     The files are saved by default in csv before this function is called. This
