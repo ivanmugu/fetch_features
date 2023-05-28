@@ -33,7 +33,6 @@ dependencies = [
     "pytz==2023.3",
     "six==1.16.0",
     "tzdata==2023.3",
-    "toml==0.10.2"
 ]
 
 [project.urls]

@@ -340,8 +340,11 @@ def fetch_features_manager(
     # If user requested features from list of accession numbers use the
     # `fetch_from_accession` function.
     if type_list == 'accession' and (not access_biosample_from_accession):
-        # Formating list of accession numbers in batches
-        submission_list = database.make_uid_batch_list(list_accessions)
+        # Formating list of accession numbers in batches. Don't make batches
+        # greater than 500.
+        submission_list = database.make_uid_batch_list(
+            uid_list=list_accessions, batch_size=200
+        )
         # Fetching features
         print("\nFetching features\n")
         fetch_from_accession(
@@ -356,12 +359,16 @@ def fetch_features_manager(
     # numbers, use the `get_biosample_numbers` function to retrieve the linked
     # BioSample numbers. Then use the `fetch_from_biosample` function.
     if type_list == 'accession' and access_biosample_from_accession:
-        # Formating list of accession numbers in batches
-        submission_list = database.make_uid_batch_list(list_accessions)
+        # Formating list of accession numbers in batches. Don't make batches
+        # greater than 500.
+        submission_list = database.make_uid_batch_list(
+            uid_list=list_accessions, batch_size=200
+        )
         # Getting BioSample numbers
         print("Retrieving BioSample numbers from list of accession numbers")
         list_biosamples = database.get_biosample_numbers(
-            submission_list, email_address)
+            submission_list, email_address
+        )
         # Fetching features
         print("\nFetching features\n")
         fetch_from_biosample(

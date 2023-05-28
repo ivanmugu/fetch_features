@@ -77,8 +77,6 @@ fetch_features -i path/to/list.txt -t accession -e email@address.com -o ~/Docume
 fetch_features --gui
 ```
 
-<p align="center">
-  <picture>
-    <img src="./images/fetch_features_gui.png">
-  </picture>
+<p align='center'>
+  <img src=https://github.com/ivanmugu/fetch_features/blob/main/images/fetch_features_gui.png />
 </p>
