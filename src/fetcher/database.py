@@ -90,7 +90,7 @@ def make_uid_list(infile: Path) -> list:
     return uid_list
 
 
-def make_uid_batch_list(uid_list: list, batch_size: int = 1) -> list:
+def make_uid_batch_list(uid_list: list, batch_size: int = 200) -> list:
     """Make batches of commma-delimited UIDs as accession or Biosample numbers.
 
     Parameters
@@ -667,13 +667,13 @@ def clean_features(raw_data: list) -> list:
                 serovar text,
                 collected_by text,
                 genotype text,
-                BioProject text,
-                BioSample text,
-                Assem_Method text,
-                Gen_Coverage text,
-                Seq_Technol text,
-                Gen_Represent text,
-                Exp_Final_Ver
+                bioproject text,
+                biosample text,
+                assem_method text,
+                gen_coverage text,
+                seq_technol text,
+                gen_represent text,
+                exp_final_ver
                 )""")
     conn.commit()
 
@@ -686,8 +686,8 @@ def clean_features(raw_data: list) -> list:
                 :mod_date, :topology, :mol_type, :organism, :strain,
                 :isolation_source, :host, :plasmid, :country, :lat_lon,
                 :collection_date, :note, :serovar, :collected_by, :genotype,
-                :BioProject, :BioSample, :Assem_Method, :Gen_Coverage,
-                :Seq_Technol, :Gen_Represent, :Exp_Final_Ver
+                :bioproject, :biosample, :assem_method, :gen_coverage,
+                :seq_technol, :gen_represent, :exp_final_ver
             )""", {
                 'set_batch': int(raw_result['set_batch']),
                 'description': raw_result['description'],
@@ -709,13 +709,13 @@ def clean_features(raw_data: list) -> list:
                 'serovar': raw_result['serovar'],
                 'collected_by': raw_result['collected_by'],
                 'genotype': raw_result['genotype'],
-                'BioProject': raw_result['BioProject'],
-                'BioSample': raw_result['BioSample'],
-                'Assem_Method': raw_result['Assem_Method'],
-                'Gen_Coverage': raw_result['Gen_Coverage'],
-                'Seq_Technol': raw_result['Seq_Technol'],
-                'Gen_Represent': raw_result['Gen_Represent'],
-                'Exp_Final_Ver': raw_result['Exp_Final_Ver']
+                'bioproject': raw_result['bioproject'],
+                'biosample': raw_result['biosample'],
+                'assem_method': raw_result['assem_method'],
+                'gen_coverage': raw_result['gen_coverage'],
+                'seq_technol': raw_result['seq_technol'],
+                'gen_represent': raw_result['gen_represent'],
+                'exp_final_ver': raw_result['exp_final_ver']
             }
         )
     conn.commit()
@@ -765,13 +765,13 @@ def clean_features(raw_data: list) -> list:
         info['serovar'] = updated_result[17]
         info['collected_by'] = updated_result[18]
         info['genotype'] = updated_result[19]
-        info['BioProject'] = updated_result[20]
-        info['BioSample'] = updated_result[21]
-        info['Assem_Method'] = updated_result[22]
-        info['Gen_Coverage'] = updated_result[23]
-        info['Seq_Technol'] = updated_result[24]
-        info['Gen_Represent'] = updated_result[25]
-        info['Exp_Final_Ver'] = updated_result[26]
+        info['bioproject'] = updated_result[20]
+        info['biosample'] = updated_result[21]
+        info['assem_method'] = updated_result[22]
+        info['gen_coverage'] = updated_result[23]
+        info['seq_technol'] = updated_result[24]
+        info['gen_represent'] = updated_result[25]
+        info['exp_final_ver'] = updated_result[26]
         records.append(info.copy())
     conn.close()
 
