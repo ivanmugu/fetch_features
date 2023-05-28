@@ -530,6 +530,25 @@ def parser(fetch_handle: IO, set_number: int) -> tuple:
     return (records, ref_records)
 
 
+class References:
+    """Class to store references from a GenBank record."""
+
+    def __init__(
+        self, accession='missing', reference_num='missing', location='missing',
+        authors='missing', title='missing', journal='missing',
+        medline_id='missing', pubmed_id='missing', comment='missing'
+    ):
+        self.accession = accession
+        self.reference_num = reference_num
+        self.location = location
+        self.authors = authors
+        self.title = title
+        self.journal = journal
+        self.medline_id = medline_id
+        self.pubmed_id = pubmed_id
+        self.comment = comment
+
+
 def get_references(record: IO) -> list:
     """Get all references of accession number.
 
@@ -545,22 +564,26 @@ def get_references(record: IO) -> list:
     """
     references = []
     for i, reference in enumerate(record.annotations['references']):
-        info = {}
-        info['accession'] = record.id
-        info['reference_num'] = str(i)
-        if len(reference.location) == 0:
-            info['location'] = "N/A"
-        else:
+        info = References()
+        info.accession = record.id
+        info.reference_num = str(i + 1)
+        if reference.location:
             start = reference.location[0].start
             end = reference.location[0].end
-            info['location'] = f"bases {start} to {end}"
-        info['authors'] = reference.authors
-        info['title'] = reference.title
-        info['journal'] = reference.journal
-        info['medline_id'] = reference.medline_id
-        info['pubmed_id'] = reference.pubmed_id
-        info['comment'] = reference.comment
-        references.append(info)
+            info.location = f"bases {start} to {end}"
+        if reference.authors:
+            info.authors = reference.authors
+        if reference.title:
+            info.title = reference.title
+        if reference.journal:
+            info.journal = reference.journal
+        if reference.medline_id:
+            info.medline_id = reference.medline_id
+        if reference.pubmed_id:
+            info.pubmed_id = reference.pubmed_id
+        if reference.comment:
+            info.comment = reference.comment
+        references.append(vars(info))
     return references
 
 
