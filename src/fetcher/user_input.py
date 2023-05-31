@@ -159,7 +159,7 @@ def parse_comm_line() -> UserInput:
     # Parse command line arguments and store info in a UserInput class #
     # ################################################################ #
     args = parser.parse_args()
-    print(args.__dict__)
+    # print(args.__dict__)
     user_input = get_command_line_input(args)
     check_required_and_gui_arguments(user_input)
 
@@ -196,6 +196,7 @@ def get_command_line_input(command_line_input: Namespace) -> UserInput:
 
 
 def check_required_and_gui_arguments(user_input: UserInput) -> None:
+    # If `use_gui` is selected, no mandatory arguments are needed.
     if (
         (user_input.use_gui and user_input.infile) or
         (user_input.use_gui and user_input.uid_type) or
@@ -205,6 +206,7 @@ def check_required_and_gui_arguments(user_input: UserInput) -> None:
             'Error: too many arguments. If you want to activate the ' +
             'GUI, only provide the `--gui` flag.'
         )
+    # If `use_gui` is not selected, all mandatory arguments are needed.
     if (
         (not user_input.use_gui and not user_input.infile) or
         (not user_input.use_gui and not user_input.uid_type) or

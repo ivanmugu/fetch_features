@@ -53,54 +53,23 @@ def fetch_from_accession(
     # Declaring end.
     end = 0
 
-    # Fetch the information from GenBank by batches.
+    # Iterate over list of batches of accession numbers.
     for set_number, submission in enumerate(submission_list):
         start = end
         # submission_list is a list of accession numbers separated by
         # commas. Therefore, the number of commas indicate the number of
         # accession numbers.
-        batch_size = submission.count(',') + 1
+        batch_size = len(submission)
         end = end + batch_size
 
         # Print download batch record.
         print(f"Going to download record {start + 1} to {end}\n")
 
-        # Post the submission_list.
-        # Because we are requesting information from a huge list of acc
-        # numbers, we have to use the ".epost" function which uploads a list of
-        # UIDs (acc numbers) for use in subsequent searches. Then, from .epost
-        # we can get the QueryKey and the WebEnv which define our history
-        # session and can be used to perform searches of data.
-        post = Entrez.epost('nuccore', id=submission)
-        search_results = use_entrez_read(post)
-
-        # Copy cookie "WebEnv" and query "QueryKey" from our history session to
-        # keep track of our batch fetching.
-        # WevEnv: Web environment string returned from a previous ESearch,
-        # EPost or ELink call
-        # QueryKey: Integer query key returned by a previous ESearch, EPost or
-        # ELink call.
-        webenv = search_results["WebEnv"]
-        query_key = search_results["QueryKey"]
-
-        # Get the batch information.
-        # db -> database, nuccore -> nuleotide, rettype -> retrieval type
-        # retmode -> determines the format of the return output
-        # retstart -> sequential index of the first UID in the retrieved
-        # set_number to be shown in the XML output
-        # retmax -> total number of UIDs from the retrieved set_number to
-        # be shown in the XML output
-        # idtype-> specifies the type of identifier to return for sequence.
-        # databases, acc -> accesion number.
+        # Fetch GenBank sequences.
+        # db -> database, nuccore -> nuleotide, rettype -> retrieval type,
+        # retmode -> determines the format of the return output,
         fetch_handle = Entrez.efetch(
-            db="nuccore",
-            rettype="gb",
-            retmode="text",
-            retstart=0,
-            retmax=batch_size,
-            webenv=webenv,
-            query_key=query_key,
-            idtype="acc"
+            db="nuccore", rettype="gb", retmode="text", id=submission,
         )
 
         # Parse the data fetched from NCBI.
@@ -108,10 +77,11 @@ def fetch_from_accession(
             fetch_handle, set_number + 1)
 
         # Save the retrived data in the csv file.
-        for _, record in enumerate(records):
+        for record in records:
             results_writer.writerow(record)
-        for _, ref_record in enumerate(ref_records):
+        for ref_record in ref_records:
             ref_results_writer.writerow(ref_record)
+
         # Close fetch_handle.
         fetch_handle.close()
 
@@ -274,13 +244,13 @@ def use_entrez_read(handle: IO) -> None:
         return search_result
     except RuntimeError:
         print('Your list has invalid UIDs.')
-        sys.exit()
 
 
 def fetch_features_manager(
         infile: Path, email_address: str, type_list: str = 'accession',
         output_folder: Path = Path('.'),
-        access_biosample_from_accession: bool = False, save_as: str = 'csv'
+        access_biosample_from_accession: bool = False, save_as: str = 'csv',
+        batch_size: int = 100
 ) -> None:
     """Fetch features from a list of accession or BioSample numbers.
 
@@ -302,14 +272,18 @@ def fetch_features_manager(
         features of all the associated accession numbers.
     save_as : str
         Output file format. Options: 'csv', 'excel', or 'csv-excel'.
+    batch_size : int
+        Number of UIDs to be requested by batch. According to the documentation
+        of BioPython, it is not recommended to make batches of more than 500
+        UIDs.
     """
-    # Prove email address to NCBI
+    # Provide email address to NCBI
     Entrez.email = email_address
     # Read infile and create a list of accession or BioSample numbers.
     list_accessions = database.make_uid_list(infile)
-    # Count the number of requested accession or BioSample numbers.
-    count = len(list_accessions)
-    print(f"\nRequested accession or BioSample numbers: {count}\n")
+    print(
+        f"\nRequested accession or BioSample numbers: {len(list_accessions)}\n"
+    )
 
     # Open result files to write the fetched data in csv format.
     results_path = output_folder / "results.csv"
@@ -319,12 +293,13 @@ def fetch_features_manager(
 
     # results' field names for the csv table.
     fields = [
-        "set_batch", "description", "accession", "size",
-        "molecule", "mod_date", "topology", "mol_type", "organism",
-        "strain", "isolation_source", "host", "plasmid", "country",
-        "lat_lon", "collection_date", "note", "serovar", "collected_by",
-        "genotype", "bioproject", "biosample", "assem_method",
-        "gen_coverage", "seq_technol", "gen_represent", "exp_final_ver"]
+        "set_batch", "description", "accession", "size", "molecule",
+        "mod_date", "topology", "mol_type", "organism", "strain",
+        "isolation_source", "host", "plasmid", "country", "lat_lon",
+        "collection_date", "note", "serovar", "collected_by", "genotype",
+        "bioproject", "biosample", "assem_method", "gen_coverage",
+        "seq_technol", "gen_represent", "exp_final_ver"
+    ]
     # references' field names for the csv table.
     ref_fields = [
         "accession", "reference_num", "location", "authors", "title",
@@ -337,15 +312,16 @@ def fetch_features_manager(
     results_writer.writeheader()
     ref_results_writer.writeheader()
 
-    # If user requested features from list of accession numbers use the
+    # ======================================================================= #
+    # If user requested features from a list of accession numbers use the
     # `fetch_from_accession` function.
+    # ======================================================================= #
     if type_list == 'accession' and (not access_biosample_from_accession):
-        # Formating list of accession numbers in batches. Don't make batches
-        # greater than 500.
-        submission_list = database.make_uid_batch_list(
-            uid_list=list_accessions, batch_size=200
+        # Make batches of accession numbers.
+        submission_list = database.make_uid_batches(
+            uid_list=list_accessions, batch_size=batch_size
         )
-        # Fetching features
+        # Fetch features.
         print("\nFetching features\n")
         fetch_from_accession(
             results_file=results,
@@ -355,21 +331,22 @@ def fetch_features_manager(
             submission_list=submission_list,
         )
 
+    # ======================================================================= #
     # If user requested to access the BioSample numbers linked to accession
-    # numbers, use the `get_biosample_numbers` function to retrieve the linked
-    # BioSample numbers. Then use the `fetch_from_biosample` function.
+    # numbers, first use the `get_biosample_numbers` function to retrieve the
+    # linked BioSample numbers. Then use the `fetch_from_biosample` function.
+    # ======================================================================= #
     if type_list == 'accession' and access_biosample_from_accession:
-        # Formating list of accession numbers in batches. Don't make batches
-        # greater than 500.
-        submission_list = database.make_uid_batch_list(
-            uid_list=list_accessions, batch_size=200
+        # Make batches of accession numbers.
+        submission_list = database.make_uid_batches(
+            uid_list=list_accessions, batch_size=batch_size
         )
-        # Getting BioSample numbers
+        # Get the BioSample numbers associated to accession numbers.
         print("Retrieving BioSample numbers from list of accession numbers")
         list_biosamples = database.get_biosample_numbers(
             submission_list, email_address
         )
-        # Fetching features
+        # Fetch features.
         print("\nFetching features\n")
         fetch_from_biosample(
             results_file=results,
@@ -379,10 +356,12 @@ def fetch_features_manager(
             submission_list=list_biosamples,
         )
 
+    # ======================================================================= #
     # If user requested features from a BioSample list use the
     # `fetch_from_biosample` function.
+    # ======================================================================= #
     if type_list == 'biosample':
-        # Fetching features
+        # Fetch features.
         print("\nFetching features\n")
         fetch_from_biosample(
             results_file=results,
@@ -392,7 +371,7 @@ def fetch_features_manager(
             submission_list=list_accessions,
         )
 
-    # Close result files
+    # Close result files.
     results.close()
     ref_results.close()
 

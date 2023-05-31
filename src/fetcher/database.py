@@ -18,15 +18,12 @@ from Bio import SeqIO
 def make_uid_list_from_txt(infile: Path) -> list:
     """Make list of UIDs from a txt file.
 
-    Read a txt file that contains a list of UIDs, as accession or BioSample
-    numbers. Then, create a python list with these UIDs.
-
     Parameters
     ----------
     infile : Path
         Path to txt file that contains UIDs as accession or BioSample
         numbers. Every UID must be separated by a new line character
-        (enter). The list can be created in excell by saving the file as
+        (enter). The list can be created in Excel by saving the file as
         txt or using a text editor.
 
     Returns
@@ -38,14 +35,11 @@ def make_uid_list_from_txt(infile: Path) -> list:
         'CP041747.1', 'CP042638.1', 'CP015023.1', 'CP049163.1',
         'CP051714.1']
     """
-    # Open infile.txt.
+    # Open infile.txt and make a list of UIDs.
     with open(infile, 'r') as reader:
-        # Create a list of unique identifiers.
         uid_list = reader.readlines()
-
-    # Remove the '\n' character.
-    for i, uid in enumerate(uid_list):
-        uid_list[i] = uid.replace('\n', '')
+    # Remove the `\n` character of every uid.
+    uid_list = [uid.rstrip() for uid in uid_list]
 
     return uid_list
 
@@ -53,7 +47,7 @@ def make_uid_list_from_txt(infile: Path) -> list:
 def make_uid_list_from_xlsx(infile: Path) -> list:
     """Make list of UIDs from a xlsx file.
 
-    Read an excel file that contains a list of UIDs, as accession or
+    Read an Excel file that contains a list of UIDs, as accession or
     BioSample numbers. Then, create a python list with these UIDs.
     The list must be in the first column of the first spreadsheet tab.
 
@@ -90,50 +84,19 @@ def make_uid_list(infile: Path) -> list:
     return uid_list
 
 
-def make_uid_batch_list(uid_list: list, batch_size: int = 200) -> list:
-    """Make batches of commma-delimited UIDs as accession or Biosample numbers.
-
-    Parameters
-    ----------
-    uid_list : list
-        List of UIDs to be proccessed
-    batch_size : int
-        Size of batches. NCBI suggests to request a maximum of 500
-        accession numbers.
-
-    Returns
-    -------
-    submission_list : list
-        List of strings containg UIDs separated by commas. An example of a
-        submission_list created with accession numbers and a batch size of
-        three look like the following:
-        ['CP049609.1,CP028704.1,CP043542.1',
-        'CP040107.1,CP041747.1,CP042638.1',
-        'CP015023.1,CP049163.1,CP051714.1']
-    """
-    # Number of UIDs to process.
-    number_seq = len(uid_list)
-    # Declare the list of batches of comma-delimited UIDs to return after
-    # processing.
-    submission_list = []
-    # Counter to access the list_accessions.
-    counter_accessions = 0
-
-    # Loop to create the list of UIDs by batches
-    for start in range(0, number_seq, batch_size):
-        end = min(number_seq, start + batch_size)
-        # This list is going to save temporarily the batch of UIDs that are
-        # going to be converted into a string of comma-separated UIDs
-        set_list = []
-        # Make batches.
-        for _ in range(start, end):
-            set_list.append(uid_list[counter_accessions])
-            counter_accessions += 1
-        # Convert the list into string.
-        set_list = ','.join(set_list)
-        submission_list.append(set_list)
-
-    return submission_list
+def make_uid_batches(uid_list: list, batch_size: int = 100) -> list:
+    """Make list of batches of UIDs."""
+    batches = []
+    for i, uid in enumerate(uid_list):
+        if (i % batch_size == 0) and (i == 0):
+            batch = [uid]
+        elif (i % batch_size == 0):
+            batches.append(batch)
+            batch = [uid]
+        else:
+            batch.append(uid)
+    batches.append(batch)
+    return batches
 
 
 def get_biosample_numbers(submission_list: list, email_address: str) -> list:
@@ -244,7 +207,12 @@ def get_biosample_numbers(submission_list: list, email_address: str) -> list:
 
 
 class Info:
-    """"Class to store data retrieved from the nuccore database."""
+    """"Class to store data retrieved from the nuccore database.
+
+    All the attributes are initiated to `missing`. Hence, if a fetched
+    attribute from the GenBank file is missing we reduce the if-else statements
+    in the code.
+    """
 
     def __init__(
         self, set_batch='missing', description='missing', accession='missing',
