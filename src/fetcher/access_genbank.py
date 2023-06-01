@@ -4,85 +4,79 @@ BSD 3-Clause License
 Copyright (c) 2023, Ivan Munoz Gutierrez
 """
 import csv
-import sys
 from pathlib import Path
 from typing import TextIO, IO
+import urllib
+import sys
 
 from Bio import Entrez
 
 from fetcher import database
 
 
+# TODO: I need to fix the fetch_from_biosample function to work similar as the
+# fetch_from_accession function.
+
+
 def fetch_from_accession(
-        results_file: TextIO, results_fields: list, ref_results_file: TextIO,
-        ref_results_fields: list, submission_list: list
+        results_writer: TextIO, references_writer: TextIO,
+        submission_list: list
 ) -> None:
     """Fetch features from a list of accession numbers.
-
-    Use Entrez.post to ask for a list of accession numbers and Entrez.fetch
-    to retrieve the information of the posted list of accession numbers.
-    After retrieving the information, the data of every accession number is
-    parse using the parser function implemented in database.py.
 
     Parameters
     ----------
     results_file : TextIO file object
-        Opened output file to save the fetched features of the accession
-        numbers.
-    results_fields : list
-        Headers for the `results` table. This list is the information to fetch
-        for every accession number.
-    ref_results_file : TextIO file object
-        Opened output file to save the references of the accession numbers.
-    ref_results_fields : list
-        Headers for the `references_results` table. This list is the
-        information to fetch for every accession number.
+        Opened file as csv.DictWriter to save the fetched features of UIDs.
+    references_file : TextIO file object
+        Opened file as csv.DictWriter to save the references of UIDs.
     submission_list : list
-        List of strings containg accession numbers separated by commas. The
-        number of accession numbers in every string is determined by the
-        varible `batch_size` of the `make_uid_batch_list` function implemented
-        in database.py. An example of a submission_list with a batch_size of
-        three looks like the following:
-        ['CP049609.1,CP028704.1,CP043542.1',
-        'CP040107.1,CP041747.1,CP042638.1',
-        'CP015023.1,CP049163.1,CP051714.1']
+        List of batches of UIDs. An example of a submission_list with a batch
+        size of three looks like the following:
+        [['CP049609.1', 'CP028704.1', 'CP043542.1'],
+         ['CP040107.1', 'CP041747.1', 'CP042638.1'],
+         ['CP015023.1', 'CP049163.1', 'CP051714.1']]
     """
-    # Create DictWriters.
-    results_writer = csv.DictWriter(results_file, results_fields)
-    ref_results_writer = csv.DictWriter(ref_results_file, ref_results_fields)
-    # Declaring end.
+    # Iterate over list of batches of accession numbers to fetch gb sequences.
     end = 0
-
-    # Iterate over list of batches of accession numbers.
-    for set_number, submission in enumerate(submission_list):
+    for set_num, submission in enumerate(submission_list):
         start = end
-        # submission_list is a list of accession numbers separated by
-        # commas. Therefore, the number of commas indicate the number of
-        # accession numbers.
         batch_size = len(submission)
         end = end + batch_size
-
-        # Print download batch record.
         print(f"Going to download record {start + 1} to {end}\n")
 
-        # Fetch GenBank sequences.
-        # db -> database, nuccore -> nuleotide, rettype -> retrieval type,
-        # retmode -> determines the format of the return output,
-        fetch_handle = Entrez.efetch(
-            db="nuccore", rettype="gb", retmode="text", id=submission,
-        )
+        try:
+            # db -> database, nuccore -> nuleotide, rettype -> retrieval type,
+            # retmode -> determines the format of the return output.
+            fetch_handle = Entrez.efetch(
+                db="nuccore", rettype="gb", retmode="text", id=submission,
+            )
+        except urllib.error.HTTPError as err:
+            if err.code == 400:
+                print(f"{submission} has invalid nuccore UIDs")
+                print(
+                    "If you provided a single accession number, your " +
+                    "results file is going to be empty."
+                )
+            else:
+                print(f"An error ocurred with the internet:\n{err}")
+            continue
+        except urllib.error.URLError as err:
+            if err.readon.errno == 8:
+                print(f"An error occured:\n{err}")
+                sys.exit(f"Maybe your internet is disconnected!")
+            else:
+                sys.exit(f"An error occured with the internet:\n{err}")
 
         # Parse the data fetched from NCBI.
-        records, ref_records = database.parser(
-            fetch_handle, set_number + 1)
-
+        records, ref_records = database.parser(fetch_handle, set_num + 1)
         # Save the retrived data in the csv file.
         for record in records:
             results_writer.writerow(record)
         for ref_record in ref_records:
-            ref_results_writer.writerow(ref_record)
+            references_writer.writerow(ref_record)
 
-        # Close fetch_handle.
+        # Close fetch_handle
         fetch_handle.close()
 
 
@@ -307,10 +301,10 @@ def fetch_features_manager(
     ]
     # Create DictWriter for results.
     results_writer = csv.DictWriter(results, fields)
-    ref_results_writer = csv.DictWriter(ref_results, ref_fields)
+    references_writer = csv.DictWriter(ref_results, ref_fields)
     # Write headers into csv files.
     results_writer.writeheader()
-    ref_results_writer.writeheader()
+    references_writer.writeheader()
 
     # ======================================================================= #
     # If user requested features from a list of accession numbers use the
@@ -324,10 +318,10 @@ def fetch_features_manager(
         # Fetch features.
         print("\nFetching features\n")
         fetch_from_accession(
-            results_file=results,
-            results_fields=fields,
-            ref_results_file=ref_results,
-            ref_results_fields=ref_fields,
+            results_writer=results_writer,
+            # results_fields=fields,
+            references_writer=references_writer,
+            # ref_results_fields=ref_fields,
             submission_list=submission_list,
         )
 
