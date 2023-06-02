@@ -10,12 +10,9 @@ import urllib
 import sys
 
 from Bio import Entrez
+from Bio import SeqIO
 
 from fetcher import database
-
-
-# TODO: I need to fix the fetch_from_biosample function to work similar as the
-# fetch_from_accession function.
 
 
 def fetch_from_accession(
@@ -26,9 +23,9 @@ def fetch_from_accession(
 
     Parameters
     ----------
-    results_file : TextIO file object
+    results_writer : TextIO file object
         Opened file as csv.DictWriter to save the fetched features of UIDs.
-    references_file : TextIO file object
+    references_writer : TextIO file object
         Opened file as csv.DictWriter to save the references of UIDs.
     submission_list : list
         List of batches of UIDs. An example of a submission_list with a batch
@@ -62,7 +59,7 @@ def fetch_from_accession(
                 print(f"An error ocurred with the internet:\n{err}")
             continue
         except urllib.error.URLError as err:
-            if err.readon.errno == 8:
+            if err.reason.errno == 8:
                 print(f"An error occured:\n{err}")
                 sys.exit(f"Maybe your internet is disconnected!")
             else:
@@ -81,8 +78,8 @@ def fetch_from_accession(
 
 
 def fetch_from_biosample(
-        results_file: TextIO, results_fields: list, ref_results_file: TextIO,
-        ref_results_fields: list, submission_list: list
+        results_writer: TextIO, references_writer: TextIO,
+        submission_list: list
 ) -> None:
     """Fetch features from a list of BioSample numbers.
 
@@ -96,18 +93,10 @@ def fetch_from_biosample(
 
     Parameters
     ----------
-    results_file : TextIO file object
-        Opened output file to save the fetched features of the accession
-        numbers.
-    results_fields : list
-        Headers for the `results` table. This list is the information to fetch
-        for every accession number associated to the BioSample number.
-    ref_results_file : TextIO file object
-        Opened output file to save the references of the accession numbers.
-    ref_results_fields : list
-        Headers for the `references_results` table. This list is the
-        information to fetch for every accession number associated to the
-        BioSample number.
+    results_writer : TextIO file object
+        Opened file as csv.DictWriter to save the fetched features of UIDs.
+    references_writer : TextIO file object
+        Opened file as csv.DictWriter to save the references of UIDs.
     submission_list : list
         List of BioSample numbers requested by the user.
 
@@ -120,10 +109,7 @@ def fetch_from_biosample(
     this program uses the `clean_features` function provided in database.py.
     """
     # Create DictWriter
-    results_writer = csv.DictWriter(results_file, results_fields)
-    ref_results_writer = csv.DictWriter(ref_results_file, ref_results_fields)
     lenght_acc_list = len(submission_list)
-
     # Iterate over the list of BioSample numbers (submission_list).
     for query, submission in enumerate(submission_list):
         # Number to keep track set_number of sequences (query), it is
@@ -138,13 +124,22 @@ def fetch_from_biosample(
         # Search for the BioSample accession number. We need usehistory
         # to get the QueryKey and the WebEnv which define our history
         # session and can be used to performe searches of data.
-        search_handle = Entrez.esearch(
-            db="nuccore", term=submission, usehistory="y"
-        )
+        try:
+            search_handle = Entrez.esearch(
+                db="nuccore", term=submission, usehistory="y"
+            )
+        except urllib.error.HTTPError as err:
+            print(f"An error ocurred with the internet:\n{err}")
+            continue
+        except urllib.error.URLError as err:
+            if err.reason.errno == 8:
+                print(f"An error occured:\n{err}")
+                sys.exit(f"Maybe your internet is disconnected!")
+            else:
+                sys.exit(f"An error occured with the internet:\n{err}")
 
         # Copy information in computer memory.
-        # search_results = Entrez.read(search_handle)
-        search_results = use_entrez_read(search_handle)
+        search_results = Entrez.read(search_handle)
 
         # Close the handle.
         search_handle.close()
@@ -152,7 +147,10 @@ def fetch_from_biosample(
         # Count the number of results (number of sequences).
         count = int(search_results["Count"])
         print(f"Number of requested sequences from BioSample: {count}")
-
+        # Check if the BioSample number is valid.
+        if count == 0:
+            print(f'`{submission}` is an invalid BioSample number.\n')
+            continue
         # Copy cookie "WebEnv" and query "QueryKey" from our history session.
         # WevEnv -> Web environment string returned from a previous ESearch,
         # EPost or ELink call; QueryKey -> Integer query key returned by a
@@ -221,7 +219,7 @@ def fetch_from_biosample(
         for updated_feature in updated_features:
             results_writer.writerow(updated_feature)
         for updated_ref in updated_references:
-            ref_results_writer.writerow(updated_ref)
+            references_writer.writerow(updated_ref)
 
         print(
             "Number of sequences saved after processing: " +
@@ -238,6 +236,88 @@ def use_entrez_read(handle: IO) -> None:
         return search_result
     except RuntimeError:
         print('Your list has invalid UIDs.')
+
+
+def get_biosample_numbers(submission_list: list) -> list:
+    """Retrieve BioSample numbers from a list of batches of accession numbers.
+
+    This function uses Entrez.epost to upload batches of accession numbers to
+    the Entrez History server. To avoid problems with large batches of
+    accession numbers, limit the number of accession number per batch to 200.
+
+    Parameters
+    ----------
+    submission_list : list
+        List of batches of accession numbers. The following is an example of a
+        submission_list containing batches of three accession numbers per item
+        in the list:
+        [["CP049609.1", "CP028704.1", "CP043542.1"],
+         ["CP040107.1", "CP041747.1", "CP042638.1"],
+         ["CP015023.1", "CP049163.1", "CP051714.1"]]
+
+    Returns
+    -------
+    biosample_numbers : list
+        List of BioSample numbers retrieved from Entrez by using the provided
+        list of accession numbers. The following is a return list containing
+        the corresponding BioSample numbers of the example provided in the
+        Parameters section:
+        ["SAMN07169263", "SAMN08875353", "SAMEA104140560",
+        "SAMN05360217", "SAMN12302771", "SAMN12500846",
+        "SAMN04202539", "SAMN14133047", "SAMN14609782"]
+
+    Notes
+    -----
+    For more information about Entrez.epost read chapter 9.4 of Biopython
+    Tutorial and Cookbook (Biopython 1.76) and visit:
+    https://www.ncbi.nlm.nih.gov/books/NBK25499/#chapter4.EPost
+    """
+    # Create list to save BioSample numbers.
+    biosample_numbers = []
+    # Initialize last accession number.
+    end = 0
+    # Loop over batches of accession numbers to fetch BioSample numbers.
+    for _, submission in enumerate(submission_list):
+        start = end
+        batch_size = len(submission)
+        end = end + batch_size
+        # Print download batch record.
+        print(f"Retrieving BioSample numbers from record {start + 1} to {end}")
+
+        try:
+            # db -> database, nuccore -> nuleotide, rettype -> retrieval type,
+            # retmode -> determines the format of the return output.
+            fetch_handle = Entrez.efetch(
+                db="nuccore", rettype="gb", retmode="text", id=submission
+            )
+        except urllib.error.HTTPError as err:
+            if err.code == 400:
+                print(f"{submission} has invalid nuccore UIDs")
+                print(
+                    "If you provided a single accession number, your " +
+                    "results file is going to be empty."
+                )
+            else:
+                print(f"An error ocurred with the internet:\n{err}")
+            continue
+        except urllib.error.URLError as err:
+            if err.reason.errno == 8:
+                print(f"An error occured:\n{err}")
+                sys.exit(f"Maybe your internet is disconnected!")
+            else:
+                sys.exit(f"An error occured with the internet:\n{err}")
+
+        # Parse through the fetched information
+        for seq_record in SeqIO.parse(fetch_handle, "gb"):
+            # Loop over database cross-references (dbxrefs)
+            for xref in enumerate(seq_record.dbxrefs):
+                list_dbxrefs = xref[1].split(':')
+                # Get the BioSample number
+                if 'BioSample' in list_dbxrefs:
+                    biosample_numbers.append(list_dbxrefs[1])
+                    break
+
+    return biosample_numbers
 
 
 def fetch_features_manager(
@@ -319,14 +399,12 @@ def fetch_features_manager(
         print("\nFetching features\n")
         fetch_from_accession(
             results_writer=results_writer,
-            # results_fields=fields,
             references_writer=references_writer,
-            # ref_results_fields=ref_fields,
             submission_list=submission_list,
         )
 
     # ======================================================================= #
-    # If user requested to access the BioSample numbers linked to accession
+    # If user requested to access the BioSample numbers via the accession
     # numbers, first use the `get_biosample_numbers` function to retrieve the
     # linked BioSample numbers. Then use the `fetch_from_biosample` function.
     # ======================================================================= #
@@ -336,17 +414,13 @@ def fetch_features_manager(
             uid_list=list_accessions, batch_size=batch_size
         )
         # Get the BioSample numbers associated to accession numbers.
-        print("Retrieving BioSample numbers from list of accession numbers")
-        list_biosamples = database.get_biosample_numbers(
-            submission_list, email_address
-        )
+        print("Retrieving BioSample numbers from list of accession numbers\n")
+        list_biosamples = get_biosample_numbers(submission_list)
         # Fetch features.
         print("\nFetching features\n")
         fetch_from_biosample(
-            results_file=results,
-            results_fields=fields,
-            ref_results_file=ref_results,
-            ref_results_fields=ref_fields,
+            results_writer=results_writer,
+            references_writer=references_writer,
             submission_list=list_biosamples,
         )
 
@@ -358,10 +432,9 @@ def fetch_features_manager(
         # Fetch features.
         print("\nFetching features\n")
         fetch_from_biosample(
-            results_file=results,
-            results_fields=fields,
-            ref_results_file=ref_results,
-            ref_results_fields=ref_fields,
+            results_writer=results_writer,
+            references_writer=references_writer,
+            # This list constains already the biosample numbers.
             submission_list=list_accessions,
         )
 
