@@ -216,6 +216,15 @@ def check_required_and_gui_arguments(user_input: UserInput) -> None:
             'Error: the `--input`, `--type`, and `--email` arguments ' +
             'are required.'
         )
+    # If `--access-biosample-from-accession`, check that `--type` is accession
+    if (
+        (user_input.uid_type != 'accession') and
+        (user_input.access_biosample_from_accession)
+    ):
+        sys.exit(
+            'Error: when requesting `--access-biosample-from-accession` ' +
+            'the `--type` argument must be accession.'
+        )
 
 
 def get_infile(comm_line_input: Namespace) -> Union[Path, None]:
