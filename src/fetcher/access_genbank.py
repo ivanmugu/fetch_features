@@ -12,7 +12,7 @@ import sys
 from Bio import Entrez
 from Bio import SeqIO
 
-from fetcher import database
+from fetcher import utils
 
 
 def fetch_from_accession(
@@ -66,7 +66,7 @@ def fetch_from_accession(
                 sys.exit(f"An error occured with the internet:\n{err}")
 
         # Parse the data fetched from NCBI.
-        records, ref_records = database.parser(fetch_handle, set_num + 1)
+        records, ref_records = utils.parser(fetch_handle, set_num + 1)
         # Save the retrived data in the csv file.
         for record in records:
             results_writer.writerow(record)
@@ -198,7 +198,7 @@ def fetch_from_biosample(
             )
 
             # Parse the data fetched from NCBI.
-            records, ref_records = database.parser(fetch_handle, set_number)
+            records, ref_records = utils.parser(fetch_handle, set_number)
 
             # Extend the records obtained in biosample_records for future
             # cleaning of the data, i.e to get the most updated data.
@@ -208,10 +208,10 @@ def fetch_from_biosample(
         # Use the clean_features function to clean data and obtain the
         # most updated information.
         # clean_features() returns a list of dictionaries
-        updated_features = database.clean_features(biosample_records)
+        updated_features = utils.clean_features(biosample_records)
 
         # Get references from updated accession number.
-        updated_references = database.clean_references(
+        updated_references = utils.clean_references(
             updated_features, biosample_ref_records
         )
 
@@ -354,7 +354,7 @@ def fetch_features_manager(
     # Provide email address to NCBI
     Entrez.email = email_address
     # Read infile and create a list of accession or BioSample numbers.
-    list_accessions = database.make_uid_list(infile)
+    list_accessions = utils.make_uid_list(infile)
     print(
         f"\nRequested accession or BioSample numbers: {len(list_accessions)}\n"
     )
@@ -392,7 +392,7 @@ def fetch_features_manager(
     # ======================================================================= #
     if type_list == 'accession' and (not access_biosample_from_accession):
         # Make batches of accession numbers.
-        submission_list = database.make_uid_batches(
+        submission_list = utils.make_uid_batches(
             uid_list=list_accessions, batch_size=batch_size
         )
         # Fetch features.
@@ -410,7 +410,7 @@ def fetch_features_manager(
     # ======================================================================= #
     if type_list == 'accession' and access_biosample_from_accession:
         # Make batches of accession numbers.
-        submission_list = database.make_uid_batches(
+        submission_list = utils.make_uid_batches(
             uid_list=list_accessions, batch_size=batch_size
         )
         # Get the BioSample numbers associated to accession numbers.
@@ -443,7 +443,7 @@ def fetch_features_manager(
     ref_results.close()
 
     # Save files in the requested format.
-    database.save_results_as(
+    utils.save_results_as(
         results=results_path,
         ref_results=ref_results_path,
         save_as=save_as
