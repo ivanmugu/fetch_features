@@ -42,6 +42,7 @@ def fetch_from_accession(
         end = end + batch_size
         print(f"Going to download record {start + 1} to {end}\n")
 
+        print("I am trying!")
         try:
             # db -> database, nuccore -> nuleotide, rettype -> retrieval type,
             # retmode -> determines the format of the return output.
@@ -61,9 +62,11 @@ def fetch_from_accession(
         except urllib.error.URLError as err:
             if err.reason.errno == 8:
                 print(f"An error occured:\n{err}")
-                sys.exit(f"Maybe your internet is disconnected!")
+                print(f"Maybe your internet is disconnected!")
+                sys.exit()
             else:
-                sys.exit(f"An error occured with the internet:\n{err}")
+                print(f"An error occured with the internet:\n{err}")
+                sys.exti()
 
         # Parse the data fetched from NCBI.
         records, ref_records = utils.parser(fetch_handle, set_num + 1)
@@ -134,9 +137,11 @@ def fetch_from_biosample(
         except urllib.error.URLError as err:
             if err.reason.errno == 8:
                 print(f"An error occured:\n{err}")
-                sys.exit(f"Maybe your internet is disconnected!")
+                print(f"Maybe your internet is disconnected!")
+                sys.exit()
             else:
-                sys.exit(f"An error occured with the internet:\n{err}")
+                print(f"An error occured with the internet:\n{err}")
+                sys.exit()
 
         # Copy information in computer memory.
         search_results = Entrez.read(search_handle)

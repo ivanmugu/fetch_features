@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fetch_features"
-version = "0.2.7"
+version = "0.2.8"
 authors = [
     {name = "Ivan Muñoz-Gutierrez", email = "ivan.munoz.gutierrez@gmail.com"},
 ]
@@ -33,6 +33,7 @@ dependencies = [
     "pytz==2023.3",
     "six==1.16.0",
     "tzdata==2023.3",
+    "openpyxl==3.1.2"
 ]
 
 [project.urls]

@@ -163,7 +163,6 @@ class App(customtkinter.CTk):
         )
         self.type_identifier_menu.grid(
             row=4, column=0, padx=(10, 5), pady=(5, 10))
-        # TODO: test this
         # Access BioSample from Accession number label
         self.access_bio_from_acc_label = customtkinter.CTkLabel(
             self.navigation_frame,
@@ -320,9 +319,11 @@ class App(customtkinter.CTk):
 
     def update_access_biosample_from_accession(self) -> None:
         if self.access_bio_from_acc_var.get() == 'No':
-            self.access_bio_from_acc = False
+            self.access_biosample_from_accession = False
         else:
-            self.access_bio_from_acc = True
+            self.access_biosample_from_accession = True
+        print("value of access_bio_from_acc_var =",
+              self.access_biosample_from_accession)
 
     def update_save_as(self) -> None:
         if self.save_as_var.get() == 'csv':
@@ -429,9 +430,8 @@ class App(customtkinter.CTk):
         self.display_window.see('end')
         self.output.seek(0)
         self.output.truncate(0)
-        # self.display_window.configure(state='disabled')
-        # Call updtate constantly to check stdout
-        self.after(1000, self.update_textbox)
+        # Call updtate constantly to check stdout and stderr
+        self.after(500, self.update_textbox)
 
     def print_values_to_run_fetch_features(self) -> None:
         """Print values needed to run fetch features."""
