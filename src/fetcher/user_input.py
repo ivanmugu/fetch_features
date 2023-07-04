@@ -15,12 +15,6 @@ import pkg_resources
 
 # Description message.
 description_msg = r"""
-  __      _       _        __            _
- / _| ___| |_ ___| |__    / _| ___  __ _| |_ _   _ _ __ ___  ___
-| |_ / _ \ __/ __| '_ \  | |_ / _ \/ _` | __| | | | '__/ _ \/ __|
-|  _|  __/ || (__| | | | |  _|  __/ (_| | |_| |_| | | |  __/\__ \
-|_|  \___|\__\___|_| |_| |_|  \___|\__,_|\__|\__,_|_|  \___||___/
-
 Fetch features from a list of accession or BioSample numbers.
 """
 
@@ -28,19 +22,18 @@ Fetch features from a list of accession or BioSample numbers.
 epilog_msg = r"""
 Usage examples:
 1. The simplest command. The output is in the current working directory.
-$ fetcher -i path/to/list.txt -t accession -e email@address.com
+fetch_features -i path/list.txt -t accession -e your@email.com
 
 2. In this example, the output is in your Documents.
-$ fetcher -i path/to/list.txt -t accession -e email@address.com -o ~/Documents
+fetch_features -i path/list.txt -t accession -e your@email.com -o ~/Documents
 
 3. If you prefer the GUI version.
-$ fetcher --gui
+fetch_features --gui
 """
 
 
 class UserInput:
     """Class to save user input via the commmand line."""
-    # TODO: include a `type` option for the type of identifiers in the list.
 
     def __init__(
             self,

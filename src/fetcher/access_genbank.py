@@ -15,6 +15,11 @@ from Bio import SeqIO
 from fetcher import utils
 
 
+# TODO: test all options in MacOS, Windows, and Linux.
+# TODO: provide a set of accession and biosample numbers in the test folder.
+# Also, provide the expected results.
+
+
 def fetch_from_accession(
         results_writer: TextIO, references_writer: TextIO,
         submission_list: list
