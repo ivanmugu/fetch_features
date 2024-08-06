@@ -378,7 +378,7 @@ def fetch_features_manager(
     fields = [
         "set_batch", "description", "accession", "size", "molecule",
         "mod_date", "topology", "mol_type", "organism", "strain",
-        "isolation_source", "host", "plasmid", "country", "lat_lon",
+        "isolation_source", "host", "plasmid", "geo_loc_name", "lat_lon",
         "collection_date", "note", "serovar", "collected_by", "genotype",
         "bioproject", "biosample", "assem_method", "gen_coverage",
         "seq_technol", "gen_represent", "exp_final_ver"

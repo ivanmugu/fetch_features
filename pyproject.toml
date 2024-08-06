@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fetch_features"
-version = "0.2.10"
+version = "0.2.11"
 authors = [
     {name = "Ivan Muñoz-Gutierrez", email = "ivan.munoz.gutierrez@gmail.com"},
 ]
@@ -38,9 +38,6 @@ dependencies = [
 
 [project.urls]
 "Homepage" = "https://github.com/ivanmugu/fetch_features"
-
-[tool.flake8]
-max-line-length = 89
 
 [project.scripts]
 fetch_features = "fetcher.__main__:main"

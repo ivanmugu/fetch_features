@@ -111,7 +111,7 @@ class Info:
         size='missing', mod_date='missing', molecule='missing',
         topology='missing', mol_type='missing', organism='missing',
         strain='missing', isolation_source='missing', host='missing',
-        plasmid='missing', country='missing', lat_lon='missing',
+        plasmid='missing', geo_loc_name='missing', lat_lon='missing',
         collection_date='missing', note='missing', serovar='missing',
         collected_by='missing', genotype='missing', bioproject='missing',
         biosample='missing', assem_method='missing', gen_coverage='missing',
@@ -130,7 +130,7 @@ class Info:
         self.isolation_source = isolation_source
         self.host = host
         self.plasmid = plasmid
-        self.country = country
+        self.geo_loc_name = geo_loc_name
         self.lat_lon = lat_lon
         self.collection_date = collection_date
         self.note = note
@@ -221,7 +221,7 @@ def parser(fetch_handle: IO, set_number: int) -> tuple:
         for feature in seq_record.features:
             # `.type` is only a description of the type of feature that could
             # be source, CDS, gene, etc. The feature that we need is `source`.
-            # In type `source` we can find organism, strain, host, country, etc.
+            # In type `source` we can find organism, strain, host, geo_loc_name, etc.
             if feature.type == "source":
                 # `qualifiers` is a Python dictionary of additional information
                 # about the feature.
@@ -248,9 +248,9 @@ def parser(fetch_handle: IO, set_number: int) -> tuple:
         # Extract `plasmid`.
         if 'plasmid' in source:
             info.plasmid = source.get('plasmid')[0]
-        # Extract `country`.
-        if 'country' in source:
-            info.country = source.get('country')[0]
+        # Extract `geo_loc_name`.
+        if 'geo_loc_name' in source:
+            info.geo_loc_name = source.get('geo_loc_name')[0]
         # Extract `coordinates`.
         if "lat_lon" in source:
             info.lat_lon = source.get("lat_lon")[0]
@@ -520,7 +520,7 @@ def clean_features(raw_data: list) -> list:
                 isolation_source text,
                 host text,
                 plasmid text,
-                country text,
+                geo_loc_name text,
                 lat_lon text,
                 collection_date text,
                 note text,
@@ -544,7 +544,7 @@ def clean_features(raw_data: list) -> list:
             """INSERT INTO features_raw VALUES(
                 :set_batch, :description, :accession, :size, :molecule,
                 :mod_date, :topology, :mol_type, :organism, :strain,
-                :isolation_source, :host, :plasmid, :country, :lat_lon,
+                :isolation_source, :host, :plasmid, :geo_loc_name, :lat_lon,
                 :collection_date, :note, :serovar, :collected_by, :genotype,
                 :bioproject, :biosample, :assem_method, :gen_coverage,
                 :seq_technol, :gen_represent, :exp_final_ver
@@ -562,7 +562,7 @@ def clean_features(raw_data: list) -> list:
                 'isolation_source': raw_result['isolation_source'],
                 'host': raw_result['host'],
                 'plasmid': raw_result['plasmid'],
-                'country': raw_result['country'],
+                'geo_loc_name': raw_result['geo_loc_name'],
                 'lat_lon': raw_result['lat_lon'],
                 'collection_date': raw_result['collection_date'],
                 'note': raw_result['note'],
@@ -618,7 +618,7 @@ def clean_features(raw_data: list) -> list:
         info['isolation_source'] = updated_result[10]
         info['host'] = updated_result[11]
         info['plasmid'] = updated_result[12]
-        info['country'] = updated_result[13]
+        info['geo_loc_name'] = updated_result[13]
         info['lat_lon'] = updated_result[14]
         info['collection_date'] = updated_result[15]
         info['note'] = updated_result[16]
