@@ -13,6 +13,7 @@ from fetcher import gui
 
 
 def main():
+    """Run fetch features as cli or gui."""
     # Get user input
     user_input = parse_comm_line()
     # Check if user want to activate the GUI.

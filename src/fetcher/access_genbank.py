@@ -15,7 +15,6 @@ from Bio import SeqIO
 from fetcher import utils
 
 
-# TODO: test all options in MacOS, Windows, and Linux.
 # TODO: provide a set of accession and biosample numbers in the test folder.
 # Also, provide the expected results.
 
@@ -67,11 +66,11 @@ def fetch_from_accession(
         except urllib.error.URLError as err:
             if err.reason.errno == 8:
                 print(f"An error occured:\n{err}")
-                print(f"Maybe your internet is disconnected!")
+                print("Maybe your internet is disconnected!")
                 sys.exit()
             else:
                 print(f"An error occured with the internet:\n{err}")
-                sys.exti()
+                sys.exit()
 
         # Parse the data fetched from NCBI.
         records, ref_records = utils.parser(fetch_handle, set_num + 1)
@@ -142,7 +141,7 @@ def fetch_from_biosample(
         except urllib.error.URLError as err:
             if err.reason.errno == 8:
                 print(f"An error occured:\n{err}")
-                print(f"Maybe your internet is disconnected!")
+                print("Maybe your internet is disconnected!")
                 sys.exit()
             else:
                 print(f"An error occured with the internet:\n{err}")
@@ -313,7 +312,7 @@ def get_biosample_numbers(submission_list: list) -> list:
         except urllib.error.URLError as err:
             if err.reason.errno == 8:
                 print(f"An error occured:\n{err}")
-                sys.exit(f"Maybe your internet is disconnected!")
+                sys.exit("Maybe your internet is disconnected!")
             else:
                 sys.exit(f"An error occured with the internet:\n{err}")
 

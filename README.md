@@ -10,6 +10,8 @@ Create a virtual environment and install `fetch features` using pip as follows:
 pip install fetch-features
 ```
 
+You can also create a conda environment and install `fetch features` using pip.
+
 ## Usage and options
 
 To view all the options run:
@@ -23,12 +25,6 @@ Output:
 ```
 usage: fetch_features [-h] [-v] [-i INPUT] [-t TYPE] [-e EMAIL] [-o OUTPUT] [-s SAVE_AS]
                       [--access-biosample-from-accession] [--gui]
-
-  __      _       _        __            _
- / _| ___| |_ ___| |__    / _| ___  __ _| |_ _   _ _ __ ___  ___
-| |_ / _ \ __/ __| '_ \  | |_ / _ \/ _` | __| | | | '__/ _ \/ __|
-|  _|  __/ || (__| | | | |  _|  __/ (_| | |_| |_| | | |  __/\__ \
-|_|  \___|\__\___|_| |_| |_|  \___|\__,_|\__|\__,_|_|  \___||___/
 
 Fetch features from a list of accession or BioSample numbers.
 

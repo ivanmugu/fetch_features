@@ -7,11 +7,10 @@ Copyright (c) 2023, Ivan Munoz Gutierrez
 import os
 from datetime import datetime
 import sqlite3
-import pandas as pd
 from pathlib import Path
 from typing import IO
 
-from Bio import Entrez
+import pandas as pd
 from Bio import SeqIO
 
 

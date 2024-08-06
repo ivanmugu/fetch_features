@@ -16,8 +16,7 @@ from customtkinter import ThemeManager
 from fetcher.user_input import is_valid_email
 from fetcher.access_genbank import fetch_features_manager
 
-# TODO: make a cancel button to kill downloading and restore all parameters to
-# default.
+# TODO: make a cancel button to kill downloading and restore all parameters to default.
 # TODO: improve the reset button to clean the display textbox.
 
 
