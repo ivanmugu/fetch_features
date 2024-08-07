@@ -46,7 +46,7 @@ def fetch_from_accession(
         end = end + batch_size
         print(f"Going to download record {start + 1} to {end}\n")
 
-        print("I am trying!")
+        print("I am trying 🫡!")
         try:
             # db -> database, nuccore -> nuleotide, rettype -> retrieval type,
             # retmode -> determines the format of the return output.

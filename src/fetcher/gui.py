@@ -325,8 +325,6 @@ class App(customtkinter.CTk):
             self.access_biosample_from_accession = False
         else:
             self.access_biosample_from_accession = True
-        print("value of access_bio_from_acc_var =",
-              self.access_biosample_from_accession)
 
     def update_save_as(self) -> None:
         if self.save_as_var.get() == 'csv':
@@ -341,7 +339,7 @@ class App(customtkinter.CTk):
         # Clean display
         self.display_window.configure(state='normal')
         self.display_window.delete('0.0', 'end')
-        self.display_window.configure(state='disabled')
+        self.display_window.insert('end', 'All parameters were reseted 🙌!\n')
         # Reset input path
         self.input_path = None
         self.input_file_entry.delete(0, 'end')
@@ -368,6 +366,10 @@ class App(customtkinter.CTk):
         # Reset type of unique identifier
         self.type_identifier_var.set('Accession')
         self.type_identifier_menu.configure(variable=self.type_identifier_var)
+        # Reset Access BioSample from accession number
+        self.access_bio_from_acc_var.set('No')
+        self.access_bio_from_acc_menu.configure(
+            variable=self.access_bio_from_acc_var)
         # Reset save copy excel
         self.save_as_var.set('csv')
         self.save_as_menu.configure(variable=self.save_as_var)
