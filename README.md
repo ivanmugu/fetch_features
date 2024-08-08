@@ -78,8 +78,8 @@ fetch_features --gui
 </p>
 
 ## Notes
-Mac users can get the following error: "rllib.error.URLError SSL CERTIFICATE_VERIFY_FAILED certificate verify failed unable to get local issuer certificate".
-To fix it run the follwing command in the terminal (chage the XX for the version of your Python):
+Mac users can get the following error: "urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1000)".
+To fix it run the following command in the terminal (chage the XX for the version of your Python) [reference](https://stackoverflow.com/questions/27835619/urllib-and-ssl-certificate-verify-failed-error).
 ```bash
 /Applications/Python\ 3.XX/Install\ Certificates.command 
 ```
