@@ -76,3 +76,10 @@ fetch_features --gui
 <p align='center'>
   <img src=https://github.com/ivanmugu/fetch_features/blob/main/images/fetch_features_gui.png />
 </p>
+
+## Notes
+Mac users can get the following error: "rllib.error.URLError SSL CERTIFICATE_VERIFY_FAILED certificate verify failed unable to get local issuer certificate".
+To fix it run the follwing command in the terminal (chage the XX for the version of your Python):
+```bash
+/Applications/Python\ 3.XX/Install\ Certificates.command 
+```
